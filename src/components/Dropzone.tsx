@@ -41,10 +41,10 @@ export function Dropzone({ onFilesDrop }: DropzoneProps) {
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
             className={clsx(
-                'w-full max-w-3xl p-12 rounded-xl border-2 border-dashed transition-all duration-300 ease-in-out cursor-pointer group',
+                'w-full max-w-3xl p-12 rounded-none border-2 border-dashed transition-all duration-200 ease-in-out cursor-pointer group',
                 isDragging
-                    ? 'border-blue-500 bg-blue-50 scale-[1.02]'
-                    : 'border-slate-200 hover:border-blue-400 hover:bg-slate-50'
+                    ? 'border-[#ea580c] bg-orange-50 scale-[1.01] shadow-[4px_4px_0px_0px_#ea580c]'
+                    : 'border-[#d6d3d1] hover:border-[#ea580c] hover:bg-[#fafaf9] hover:shadow-[4px_4px_0px_0px_#d6d3d1]'
             )}
             onClick={() => document.getElementById('file-input')?.click()}
         >
@@ -59,17 +59,17 @@ export function Dropzone({ onFilesDrop }: DropzoneProps) {
 
             <div className="flex flex-col items-center justify-center text-center space-y-4">
                 <div className={clsx(
-                    'p-4 rounded-full transition-colors duration-300',
-                    isDragging ? 'bg-blue-100 text-blue-600' : 'bg-slate-100 text-slate-400 group-hover:text-blue-500 group-hover:bg-blue-50'
+                    'p-4 rounded-none border-2 transition-colors duration-200',
+                    isDragging ? 'bg-orange-100 border-orange-500 text-orange-600' : 'bg-white border-[#e7e5e4] text-[#a8a29e] group-hover:text-[#ea580c] group-hover:border-[#ea580c]'
                 )}>
                     <Upload size={32} />
                 </div>
                 <div>
-                    <h3 className="text-xl font-semibold text-slate-700 mb-1">
+                    <h3 className="text-xl font-black text-[#292524] mb-1 uppercase tracking-tight">
                         Drag & drop font files here
                     </h3>
-                    <p className="text-slate-500 text-sm">
-                        Supports TTF, WOFF, WOFF2, OTF, SVG
+                    <p className="text-[#78716c] text-sm font-mono font-bold">
+                        SUPPORTS TTF, WOFF, WOFF2, OTF, SVG
                     </p>
                 </div>
             </div>

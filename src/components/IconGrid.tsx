@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import type { IconGlyph } from '../utils/fontParser';
 
-import { Copy, Check } from 'lucide-react';
+import { Check, Copy } from 'lucide-react';
 
 interface IconGridProps {
     glyphs: IconGlyph[];
@@ -20,60 +20,63 @@ export function IconGrid({ glyphs, fontFamily }: IconGridProps) {
 
     const filteredGlyphs = glyphs.filter(glyph =>
         glyph.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        glyph.unicode.toLowerCase().includes(searchTerm.toLowerCase())
+        glyph.unicode.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        `\\u${glyph.unicode}`.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
     return (
         <div className="w-full max-w-6xl mt-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="flex items-center justify-between mb-6">
-                <h2 className="text-2xl font-bold text-slate-200">
-                    {fontFamily} <span className="text-slate-500 text-sm font-normal">({glyphs.length} icons)</span>
+                <h2 className="text-2xl font-black text-[#292524] uppercase tracking-tight">
+                    {fontFamily} <span className="text-[#78716c] text-sm font-bold font-mono ml-2">({glyphs.length} ICONS)</span>
                 </h2>
                 <input
                     type="text"
-                    placeholder="Search icons..."
+                    placeholder="SEARCH_ICONS..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="bg-slate-800 border border-slate-700 text-slate-200 px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all"
+                    className="bg-white border-2 border-[#d6d3d1] text-[#292524] px-4 py-2 rounded-none focus:outline-none focus:border-[#ea580c] focus:shadow-[4px_4px_0px_0px_#ea580c] transition-all placeholder:text-[#a8a29e] font-mono text-sm font-bold w-64"
                 />
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-4">
+            <div className="grid grid-cols-[repeat(auto-fill,minmax(140px,1fr))] gap-4">
                 {filteredGlyphs.map((glyph, index) => (
                     <div
                         key={`${glyph.unicode}-${index}`}
-                        className="group relative flex flex-col items-center p-6 bg-slate-800/50 rounded-xl border border-slate-700/50 hover:border-blue-500/50 hover:bg-slate-800 transition-all duration-300"
+                        onClick={() => handleCopy(`\\u${glyph.unicode}`, `code-${index}`)}
+                        className="group relative flex flex-col items-center p-4 bg-white border-2 border-[#e7e5e4] hover:border-[#ea580c] hover:shadow-[4px_4px_0px_0px_#ea580c] transition-all duration-200 justify-between cursor-pointer active:scale-95 active:shadow-none"
                     >
-                        <div className="w-16 h-16 flex items-center justify-center mb-4 text-slate-200 group-hover:text-blue-400 transition-colors">
-                            <svg viewBox="0 0 100 100" className="w-full h-full fill-current">
+                        <button
+                            className="absolute top-1 right-1 p-1.5 text-[#a8a29e] hover:text-[#ea580c] transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100"
+                            title="Copy Name"
+                        >
+                            {copied === `code-${index}` ? <Check size={14} /> : <Copy size={14} />}
+                        </button>
+
+                        <div className="w-full h-12 flex items-center justify-center mt-2 text-[#57534e] group-hover:text-[#ea580c] transition-colors">
+                            <svg
+                                viewBox={glyph.viewBox || "0 0 100 100"}
+                                className="max-w-full max-h-full fill-current"
+                                preserveAspectRatio="xMidYMid meet"
+                                style={{ width: 'auto', height: '100%' }}
+                            >
                                 <path d={glyph.path} />
                             </svg>
                         </div>
 
-                        <div className="text-center w-full">
-                            <p className="text-xs text-slate-400 truncate font-mono mb-1" title={glyph.name}>
+                        <div className="text-center w-full mt-2 flex flex-col gap-0.5">
+                            <p
+                                className="text-[11px] text-[#78716c] truncate font-mono font-bold group-hover:text-[#292524] px-1"
+                                title={glyph.name}
+                            >
                                 {glyph.name}
                             </p>
-                            <p className="text-[10px] text-slate-600 font-mono uppercase">
-                                {glyph.unicode}
+                            <p
+                                className="text-[10px] text-[#a8a29e] font-mono font-bold group-hover:text-[#ea580c] transition-colors"
+                                title={`\\u${glyph.unicode}`}
+                            >
+                                \u{glyph.unicode}
                             </p>
-                        </div>
-
-                        <div className="absolute inset-0 bg-slate-900/90 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center rounded-xl gap-2 backdrop-blur-sm">
-                            <button
-                                onClick={() => handleCopy(glyph.name, `name-${index}`)}
-                                className="flex items-center gap-2 px-3 py-1.5 bg-slate-700 hover:bg-slate-600 rounded-lg text-xs text-slate-200 transition-colors w-24 justify-center"
-                            >
-                                {copied === `name-${index}` ? <Check size={12} /> : <Copy size={12} />}
-                                Name
-                            </button>
-                            <button
-                                onClick={() => handleCopy(glyph.unicode, `code-${index}`)}
-                                className="flex items-center gap-2 px-3 py-1.5 bg-slate-700 hover:bg-slate-600 rounded-lg text-xs text-slate-200 transition-colors w-24 justify-center"
-                            >
-                                {copied === `code-${index}` ? <Check size={12} /> : <Copy size={12} />}
-                                Code
-                            </button>
                         </div>
                     </div>
                 ))}

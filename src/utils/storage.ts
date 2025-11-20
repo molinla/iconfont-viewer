@@ -16,27 +16,34 @@ export const saveToHistory = async (file: File): Promise<void> => {
     return;
   }
 
-  const reader = new FileReader();
+  const arrayBuffer = await file.arrayBuffer();
+  const hashBuffer = await crypto.subtle.digest('SHA-256', arrayBuffer);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+
   return new Promise((resolve, reject) => {
+    const reader = new FileReader();
     reader.onload = () => {
       try {
         const base64 = reader.result as string;
         const item: HistoryItem = {
-          id: crypto.randomUUID(),
+          id: hashHex,
           fileName: file.name,
           timestamp: Date.now(),
           fileData: base64
         };
 
         const existing = getHistory();
-        // Keep only last 5 items to avoid quota limits
-        const newHistory = [item, ...existing].slice(0, 5);
+        // Remove existing item with same hash if present to update timestamp/filename
+        const filtered = existing.filter(i => i.id !== hashHex);
+        
+        // Keep only last 5 items
+        const newHistory = [item, ...filtered].slice(0, 5);
         
         localStorage.setItem(STORAGE_KEY, JSON.stringify(newHistory));
         resolve();
       } catch (err) {
         console.error('Failed to save to history', err);
-        // Likely quota exceeded
         reject(err);
       }
     };
