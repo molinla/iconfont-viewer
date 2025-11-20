@@ -27,7 +27,6 @@ export function Dialog({
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#fafaf9]/80 backdrop-blur-sm animate-in fade-in duration-200">
             <div className="w-full max-w-md bg-white border-4 border-[#292524] shadow-[8px_8px_0px_0px_#292524] animate-in zoom-in-95 duration-200">
-                {/* Header */}
                 <div className="flex items-center justify-between p-4 border-b-2 border-[#e7e5e4] bg-[#fafaf9]">
                     <h3 className="font-black uppercase tracking-tight text-lg text-[#292524]">
                         {title}
@@ -40,14 +39,12 @@ export function Dialog({
                     </button>
                 </div>
 
-                {/* Content */}
                 <div className="p-6">
                     <p className="text-[#57534e] font-medium leading-relaxed">
                         {message}
                     </p>
                 </div>
 
-                {/* Footer */}
                 <div className="flex items-center justify-end gap-3 p-4 bg-[#fafaf9] border-t-2 border-[#e7e5e4]">
                     <button
                         onClick={onCancel}

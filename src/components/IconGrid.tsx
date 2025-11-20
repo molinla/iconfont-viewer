@@ -1,14 +1,16 @@
 import { useState } from 'react';
 import type { IconGlyph } from '../utils/fontParser';
 
-import { Check, Copy } from 'lucide-react';
+import { Check, Copy, Trash2 } from 'lucide-react';
 
 interface IconGridProps {
     glyphs: IconGlyph[];
     fontFamily: string;
+    globalSearchTerm?: string;
+    onDelete?: () => void;
 }
 
-export function IconGrid({ glyphs, fontFamily }: IconGridProps) {
+export function IconGrid({ glyphs, fontFamily, globalSearchTerm = '', onDelete }: IconGridProps) {
     const [copied, setCopied] = useState<string | null>(null);
     const [searchTerm, setSearchTerm] = useState('');
 
@@ -18,25 +20,40 @@ export function IconGrid({ glyphs, fontFamily }: IconGridProps) {
         setTimeout(() => setCopied(null), 2000);
     };
 
+    const effectiveSearchTerm = globalSearchTerm || searchTerm;
+    
     const filteredGlyphs = glyphs.filter(glyph =>
-        glyph.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        glyph.unicode.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        `\\u${glyph.unicode}`.toLowerCase().includes(searchTerm.toLowerCase())
+        glyph.name.toLowerCase().includes(effectiveSearchTerm.toLowerCase()) ||
+        glyph.unicode.toLowerCase().includes(effectiveSearchTerm.toLowerCase()) ||
+        `\\u${glyph.unicode}`.toLowerCase().includes(effectiveSearchTerm.toLowerCase())
     );
 
     return (
         <div className="w-full max-w-6xl mt-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="flex items-center justify-between mb-6">
                 <h2 className="text-2xl font-black text-[#292524] uppercase tracking-tight">
-                    {fontFamily} <span className="text-[#78716c] text-sm font-bold font-mono ml-2">({glyphs.length} ICONS)</span>
+                    {fontFamily} <span className="text-[#78716c] text-sm font-bold font-mono ml-2">({filteredGlyphs.length}/{glyphs.length} ICONS)</span>
                 </h2>
-                <input
-                    type="text"
-                    placeholder="SEARCH_ICONS..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="bg-white border-2 border-[#d6d3d1] text-[#292524] px-4 py-2 rounded-none focus:outline-none focus:border-[#ea580c] focus:shadow-[4px_4px_0px_0px_#ea580c] transition-all placeholder:text-[#a8a29e] font-mono text-sm font-bold w-64"
-                />
+                <div className="flex items-center gap-3">
+                    {!globalSearchTerm && (
+                        <input
+                            type="text"
+                            placeholder="SEARCH_ICONS..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="bg-white border-2 border-[#d6d3d1] text-[#292524] px-4 py-2 rounded-none focus:outline-none focus:border-[#ea580c] focus:shadow-[4px_4px_0px_0px_#ea580c] transition-all placeholder:text-[#a8a29e] font-mono text-sm font-bold w-64"
+                        />
+                    )}
+                    {onDelete && (
+                        <button
+                            onClick={onDelete}
+                            className="bg-white border-2 border-[#d6d3d1] text-[#78716c] p-2 rounded-none hover:border-[#dc2626] hover:text-[#dc2626] hover:shadow-[4px_4px_0px_0px_#dc2626] transition-all active:scale-95 active:shadow-none"
+                            title="Delete this font"
+                        >
+                            <Trash2 size={20} />
+                        </button>
+                    )}
+                </div>
             </div>
 
             <div className="grid grid-cols-[repeat(auto-fill,minmax(140px,1fr))] gap-4">
