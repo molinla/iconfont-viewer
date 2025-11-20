@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { Dropzone } from './components/Dropzone';
 import { IconGrid } from './components/IconGrid';
 import { Dialog } from './components/Dialog';
@@ -7,12 +7,23 @@ import { saveToHistory, getHistory, type HistoryItem, clearHistory } from './uti
 import { Trash2, Type, FileType } from 'lucide-react';
 import clsx from 'clsx';
 
+// Helper function to calculate file hash
+const calculateFileHash = async (file: File): Promise<string> => {
+  const arrayBuffer = await file.arrayBuffer();
+  const hashBuffer = await crypto.subtle.digest('SHA-256', arrayBuffer);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+};
 
 function App() {
   const [fonts, setFonts] = useState<ParsedFont[]>([]);
+  const [loadedFontHashes, setLoadedFontHashes] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(false);
   const [historyItems, setHistoryItems] = useState<HistoryItem[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [highlightedItemId, setHighlightedItemId] = useState<string | null>(null);
+  const [duplicateMessage, setDuplicateMessage] = useState<string | null>(null);
+  const historyRefs = useRef<Map<string, HTMLButtonElement>>(new Map());
   const [confirmDialog, setConfirmDialog] = useState<{
     isOpen: boolean;
     title: string;
@@ -33,41 +44,88 @@ function App() {
     setLoading(true);
     setError(null);
     try {
-      const parsed = await Promise.all(files.map(f => parseFontFile(f)));
-      setFonts(prev => [...prev, ...parsed]);
+      const filesToAdd: File[] = [];
+      const duplicates: string[] = [];
+      const newHashes = new Set(loadedFontHashes);
 
-      // Save to history
+      // Check each file for duplicates
       for (const file of files) {
-        await saveToHistory(file);
+        const hash = await calculateFileHash(file);
+
+        // Only check if currently loaded in workspace
+        if (loadedFontHashes.has(hash)) {
+          duplicates.push(file.name);
+
+          // Find and highlight the history item
+          const historyItem = historyItems.find(h => h.id === hash);
+          if (historyItem) {
+            setHighlightedItemId(historyItem.id);
+            setTimeout(() => {
+              const element = historyRefs.current.get(historyItem.id);
+              element?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }, 100);
+          }
+        } else {
+          filesToAdd.push(file);
+          newHashes.add(hash);
+        }
       }
-      // Refresh history items
-      setHistoryItems(getHistory());
+
+      // Show duplicate message
+      if (duplicates.length > 0) {
+        const msg = duplicates.length === 1
+          ? `'${duplicates[0]}' 已经加载在工作区中`
+          : `${duplicates.length} 个文件已经加载: ${duplicates.join(', ')}`;
+        setDuplicateMessage(msg);
+        setTimeout(() => {
+          setDuplicateMessage(null);
+          setHighlightedItemId(null);
+        }, 3000);
+      }
+
+      // Add new files
+      if (filesToAdd.length > 0) {
+        const parsed = await Promise.all(filesToAdd.map(f => parseFontFile(f)));
+        setFonts(prev => [...prev, ...parsed]);
+        setLoadedFontHashes(newHashes);
+
+        // Save to history
+        for (const file of filesToAdd) {
+          await saveToHistory(file);
+        }
+        setHistoryItems(getHistory());
+      }
     } catch (err) {
       console.error(err);
       setError('Failed to parse font file. Please ensure it is a valid font format.');
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [loadedFontHashes, historyItems]);
 
   const loadFromHistory = async (item: HistoryItem) => {
     setLoading(true);
     setError(null);
     try {
-      // Check if already loaded
-      const isLoaded = fonts.some(f => f.fileName === item.fileName);
+      // Check if already loaded by hash
+      const isLoaded = loadedFontHashes.has(item.id);
 
       if (isLoaded) {
         // Remove if already loaded
         setFonts(prev => prev.filter(f => f.fileName !== item.fileName));
+        setLoadedFontHashes(prev => {
+          const updated = new Set(prev);
+          updated.delete(item.id);
+          return updated;
+        });
       } else {
         // Add if not loaded
-        // Convert base64 back to file/buffer
         const res = await fetch(item.fileData);
         const blob = await res.blob();
         const file = new File([blob], item.fileName);
         const parsed = await parseFontFile(file);
         setFonts(prev => [...prev, parsed]);
+        setLoadedFontHashes(prev => new Set(prev).add(item.id));
       }
     } catch (err) {
       console.error(err);
@@ -128,29 +186,37 @@ function App() {
               </div>
             ) : (
               historyItems.map((item) => {
-                const isSelected = fonts.some(f => f.fileName === item.fileName);
+                const isSelected = loadedFontHashes.has(item.id);
+                const isHighlighted = highlightedItemId === item.id;
                 return (
                   <button
                     key={item.id}
+                    ref={(el) => {
+                      if (el) historyRefs.current.set(item.id, el);
+                      else historyRefs.current.delete(item.id);
+                    }}
                     onClick={() => loadFromHistory(item)}
                     className={clsx(
                       "w-full flex items-center gap-3 px-3 py-3 border-2 transition-all group text-left relative",
+                      isHighlighted && "animate-pulse",
                       isSelected
                         ? "bg-orange-50 border-orange-600 shadow-[2px_2px_0px_0px_#ea580c]"
-                        : "bg-white border-[#d6d3d1] hover:border-[#78716c] hover:shadow-[2px_2px_0px_0px_#78716c]"
+                        : isHighlighted
+                          ? "bg-orange-50 border-orange-600 shadow-[4px_4px_0px_0px_#ea580c] scale-[1.02]"
+                          : "bg-white border-[#d6d3d1] hover:border-[#78716c] hover:shadow-[2px_2px_0px_0px_#78716c]"
                     )}
                     title={item.fileName}
                   >
                     <div className={clsx(
                       "p-2 border transition-colors flex-shrink-0",
-                      isSelected ? "bg-orange-100 border-orange-200 text-orange-700" : "bg-[#f5f5f4] border-[#e7e5e4] text-[#a8a29e] group-hover:text-[#78716c]"
+                      isSelected || isHighlighted ? "bg-orange-100 border-orange-200 text-orange-700" : "bg-[#f5f5f4] border-[#e7e5e4] text-[#a8a29e] group-hover:text-[#78716c]"
                     )}>
                       <FileType size={18} />
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className={clsx(
                         "font-bold truncate text-sm transition-colors font-mono",
-                        isSelected ? "text-orange-900" : "text-[#57534e] group-hover:text-[#292524]"
+                        isSelected || isHighlighted ? "text-orange-900" : "text-[#57534e] group-hover:text-[#292524]"
                       )}>
                         {item.fileName}
                       </div>
@@ -180,7 +246,10 @@ function App() {
           <div className="flex gap-4">
             {fonts.length > 0 && (
               <button
-                onClick={() => setFonts([])}
+                onClick={() => {
+                  setFonts([]);
+                  setLoadedFontHashes(new Set());
+                }}
                 className="px-4 py-2 bg-white border-2 border-[#d6d3d1] hover:border-[#78716c] hover:shadow-[2px_2px_0px_0px_#78716c] text-[#57534e] text-sm font-bold transition-all active:translate-y-[1px] active:shadow-none"
               >
                 CLEAR_WORKSPACE
@@ -196,6 +265,14 @@ function App() {
               <div className="w-full mb-8 p-4 bg-red-50 border-2 border-red-500 text-red-700 text-sm flex items-center gap-2 font-bold shadow-[4px_4px_0px_0px_#ef4444]">
                 <div className="w-2 h-2 bg-red-600" />
                 ERROR: {error}
+              </div>
+            )}
+            {duplicateMessage && (
+              <div className="w-full mb-8 p-4 bg-orange-50 border-2 border-orange-600 text-orange-900 text-sm flex items-center gap-3 font-bold shadow-[4px_4px_0px_0px_#ea580c] animate-in fade-in slide-in-from-top-2 duration-300">
+                <div className="p-2 border transition-colors flex-shrink-0 bg-orange-100 border-orange-200 text-orange-700">
+                  <FileType size={18} />
+                </div>
+                {duplicateMessage}
               </div>
             )}
 

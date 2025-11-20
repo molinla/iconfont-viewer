@@ -44,7 +44,7 @@ export function IconGrid({ glyphs, fontFamily }: IconGridProps) {
                     <div
                         key={`${glyph.unicode}-${index}`}
                         onClick={() => handleCopy(`\\u${glyph.unicode}`, `code-${index}`)}
-                        className="group relative flex flex-col items-center p-4 px-0.5 bg-white border-2 border-[#e7e5e4] hover:border-[#ea580c] hover:shadow-[4px_4px_0px_0px_#ea580c] transition-all duration-200 justify-between cursor-pointer active:scale-95 active:shadow-none"
+                        className="group relative flex flex-col items-center py-4 bg-white border-2 border-[#e7e5e4] hover:border-[#ea580c] hover:shadow-[4px_4px_0px_0px_#ea580c] transition-all duration-200 justify-between cursor-pointer active:scale-95 active:shadow-none"
                     >
                         <button
                             className="absolute top-1 right-1 p-1.5 text-[#a8a29e] hover:text-[#ea580c] transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100"
@@ -53,7 +53,7 @@ export function IconGrid({ glyphs, fontFamily }: IconGridProps) {
                             {copied === `code-${index}` ? <Check size={14} /> : <Copy size={14} />}
                         </button>
 
-                        <div className="w-full h-12 flex items-center justify-center mt-2 text-[#57534e] group-hover:text-[#ea580c] transition-colors">
+                        <div className="w-full h-12 px-4 flex items-center justify-center mt-2 text-[#57534e] group-hover:text-[#ea580c] transition-colors">
                             <svg
                                 viewBox={glyph.viewBox || "0 0 100 100"}
                                 className="max-w-full max-h-full fill-current"
@@ -64,7 +64,7 @@ export function IconGrid({ glyphs, fontFamily }: IconGridProps) {
                             </svg>
                         </div>
 
-                        <div className="text-center w-full mt-2 flex flex-col gap-0.5">
+                        <div className="text-center w-full px-0.5 mt-2 flex flex-col gap-0.5">
                             <p
                                 className="text-[11px] text-[#78716c] truncate font-mono font-bold group-hover:text-[#292524] px-1"
                                 title={glyph.name}
