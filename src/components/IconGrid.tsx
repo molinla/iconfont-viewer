@@ -44,7 +44,7 @@ export function IconGrid({ glyphs, fontFamily }: IconGridProps) {
                     <div
                         key={`${glyph.unicode}-${index}`}
                         onClick={() => handleCopy(`\\u${glyph.unicode}`, `code-${index}`)}
-                        className="group relative flex flex-col items-center p-4 bg-white border-2 border-[#e7e5e4] hover:border-[#ea580c] hover:shadow-[4px_4px_0px_0px_#ea580c] transition-all duration-200 justify-between cursor-pointer active:scale-95 active:shadow-none"
+                        className="group relative flex flex-col items-center p-4 px-0.5 bg-white border-2 border-[#e7e5e4] hover:border-[#ea580c] hover:shadow-[4px_4px_0px_0px_#ea580c] transition-all duration-200 justify-between cursor-pointer active:scale-95 active:shadow-none"
                     >
                         <button
                             className="absolute top-1 right-1 p-1.5 text-[#a8a29e] hover:text-[#ea580c] transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100"
