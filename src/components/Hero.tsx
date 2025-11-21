@@ -1,13 +1,41 @@
+import { useState, useCallback } from 'react';
 import { Type, FileType } from 'lucide-react';
-import { Dropzone } from './Dropzone';
 
 interface HeroProps {
     onFilesDrop: (files: File[]) => void;
 }
 
 export function Hero({ onFilesDrop }: HeroProps) {
+    const [isDragging, setIsDragging] = useState(false);
+
+    const handleDragOver = useCallback((e: React.DragEvent) => {
+        e.preventDefault();
+        setIsDragging(true);
+    }, []);
+
+    const handleDragLeave = useCallback((e: React.DragEvent) => {
+        e.preventDefault();
+        setIsDragging(false);
+    }, []);
+
+    const handleDrop = useCallback((e: React.DragEvent) => {
+        e.preventDefault();
+        setIsDragging(false);
+
+        const files = Array.from(e.dataTransfer.files);
+        if (files.length > 0) {
+            onFilesDrop(files);
+        }
+    }, [onFilesDrop]);
+
     return (
-        <div className="flex-1 flex flex-col items-center justify-center w-full animate-in fade-in zoom-in-95 duration-500 mt-10">
+        <div
+            className={`flex-1 flex flex-col items-center justify-center w-full animate-in fade-in zoom-in-95 duration-500 mt-10 transition-all ${isDragging ? 'bg-orange-50 border-4 border-[#ea580c] border-dashed' : ''
+                }`}
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+        >
             <div className="relative w-full max-w-lg aspect-square mb-12 flex items-center justify-center">
                 <div className="absolute inset-0 border-2 border-[#e7e5e4] rounded-full animate-[spin_10s_linear_infinite]" />
                 <div className="absolute inset-12 border-2 border-dashed border-[#d6d3d1] rounded-full animate-[spin_15s_linear_infinite_reverse]" />
@@ -50,17 +78,13 @@ export function Hero({ onFilesDrop }: HeroProps) {
                 </p>
             </div>
 
-            <div className="relative group">
+            <div className="relative group pb-14">
                 <button
                     onClick={() => document.getElementById('hidden-dropzone-input')?.click()}
                     className="relative px-8 py-4 bg-[#292524] text-white font-bold uppercase tracking-widest border-2 border-transparent hover:bg-orange-600 transition-colors shadow-[4px_4px_0px_0px_#a8a29e] active:translate-y-[2px] active:shadow-[2px_2px_0px_0px_#a8a29e]"
                 >
                     Select Files
                 </button>
-            </div>
-
-            <div className="hidden">
-                <Dropzone onFilesDrop={onFilesDrop} />
             </div>
             <input
                 type="file"
