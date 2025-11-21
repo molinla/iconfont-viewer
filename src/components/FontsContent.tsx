@@ -28,7 +28,7 @@ export const FontsContent = forwardRef<FontsContentRef, FontsContentProps>(
     }));
 
     return (
-      <main className="flex-1 overflow-y-auto p-8">
+      <main className="p-8">
         <div className="max-w-7xl mx-auto flex flex-col items-center">
           {error && (
             <div className="w-full mb-8 p-4 bg-red-50 border-2 border-red-500 text-red-700 text-sm flex items-center gap-2 font-bold shadow-[4px_4px_0px_0px_#ef4444]">
@@ -39,9 +39,9 @@ export const FontsContent = forwardRef<FontsContentRef, FontsContentProps>(
 
           <div className="w-full flex flex-col items-center gap-12 pb-20">
             {fonts.map((font, i) => (
-              <IconGrid 
+              <IconGrid
                 key={font.hash || i}
-                glyphs={font.glyphs} 
+                glyphs={font.glyphs}
                 fontFamily={font.fontFamily}
                 globalSearchTerm={globalSearchTerm}
                 onDelete={() => onDeleteFont(font.hash || '')}

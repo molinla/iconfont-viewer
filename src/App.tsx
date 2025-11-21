@@ -179,7 +179,7 @@ function App() {
         onClearHistory={handleClearHistory}
       />
 
-      <div className="flex-1 flex flex-col min-w-0 bg-[#f5f5f4]">
+      <div className="flex-1 flex flex-col min-w-0 bg-[#f5f5f4] overflow-y-auto">
         <Header
           ref={headerRef}
           fontsCount={fonts.length}
